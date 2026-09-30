@@ -146,10 +146,9 @@ html.pwa .hud-strip{ top: env(safe-area-inset-top); }
   box-shadow:0 10px 30px rgba(0,0,0,.55);
   -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
   -webkit-tap-highlight-color:transparent;
-}
-#pwaBar button:active{ transform:translateY(1px); }
-transition:opacity .3s ease, transform .3s ease; }
-#pwaBar button.idle{ opacity:0; transform:translateY(12px) scale(.94); pointer-events:none; }
+
+  transition:opacity .3s ease, transform .3s ease;}
+#pwaBar button:active{ transform:translateY(1px); }#pwaBar button.idle{ opacity:0; transform:translateY(12px) scale(.94); pointer-events:none; }
 #pwaBar button[hidden]{ display:none !important; }
 #pwaBar .k{ color:#4cc9f0; font-size:13px; }
 #pwaTip{
@@ -234,23 +233,18 @@ transition:opacity .3s ease, transform .3s ease; }
     if (fsIdleTimer) { clearTimeout(fsIdleTimer); fsIdleTimer = null; }
     fsIdleTimer = setTimeout(function () { fsBtn.classList.add('idle'); }, FS_IDLE_MS);
   }
-  function fsShow() { fsBtn.classList.remove('idle'); fsArm(); }
+  function fsShow() {
+    if (fsIdleTimer) { clearTimeout(fsIdleTimer); fsIdleTimer = null; }
+    fsBtn.classList.remove('idle');
+    fsIdleTimer = setTimeout(function () { fsBtn.classList.add('idle'); }, FS_IDLE_MS);
+  }
   function fsActivity() {
     if (fsBtn.classList.contains('idle')) fsShow();
-    else fsArm();
   }
 
   window.addEventListener('touchstart', fsActivity, { passive: true });
   window.addEventListener('pointerdown', fsActivity, { passive: true });
   window.addEventListener('keydown', fsActivity);
-  window.addEventListener('scroll', fsActivity, { passive: true });
-  var fsLastMove = 0;
-  window.addEventListener('mousemove', function () {
-    var now = Date.now();
-    if (now - fsLastMove < 500) return;
-    fsLastMove = now;
-    fsActivity();
-  }, { passive: true });
 
   fsShow();
 
