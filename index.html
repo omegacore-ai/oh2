@@ -176,64 +176,27 @@ html.pwa .hud-strip{ top: env(safe-area-inset-top); }
 </div>
 
 <div id="pwaBar">
-  <button id="pwaInstall" type="button" hidden><span class="k">⬇</span><span>Install app</span></button>
   <button id="pwaFs" type="button" title="Toggle fullscreen"><span class="k">⛶</span><span>Fullscreen</span></button>
 </div>
 
 <script>
 (function () {
   var bar = document.getElementById('pwaBar');
-  var installBtn = document.getElementById('pwaInstall');
   var fsBtn = document.getElementById('pwaFs');
   var tip = document.getElementById('pwaTip');
   var tipBody = document.getElementById('pwaTipBody');
-  if (!bar || !installBtn || !fsBtn || !tip || !tipBody) return;
+  if (!bar || !fsBtn || !tip || !tipBody) return;
 
-  var deferred = null;
   var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
                    (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches) ||
                    navigator.standalone === true;
 
   if (standalone) document.documentElement.classList.add('pwa');
 
-  function isIOS() {
-    var ua = navigator.userAgent || '';
-    return /iPad|iPhone|iPod/.test(ua) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  }
-
   function showTip(html) { tipBody.innerHTML = html; tip.classList.add('show'); }
   function hideTip() { tip.classList.remove('show'); }
 
   document.getElementById('pwaTipClose').addEventListener('click', hideTip);
-
-  window.addEventListener('beforeinstallprompt', function (e) {
-    e.preventDefault();
-    deferred = e;
-    if (!standalone) installBtn.hidden = false;
-  });
-
-  window.addEventListener('appinstalled', function () {
-    deferred = null;
-    installBtn.hidden = true;
-    hideTip();
-  });
-
-  installBtn.addEventListener('click', function () {
-    if (deferred) {
-      deferred.prompt();
-      deferred.userChoice.then(function () { deferred = null; installBtn.hidden = true; });
-      return;
-    }
-    if (isIOS()) {
-      showTip('Add <b>OMEGA</b> to your home screen for a full-screen app with no browser bar:' +
-        '<ol><li>Tap the <b>Share</b> button in Safari</li>' +
-        '<li>Choose <b>Add to Home Screen</b></li>' +
-        '<li>Open <b>OMEGA</b> from your home screen</li></ol>');
-    } else {
-      showTip('Open your browser menu and choose <b>Install app</b> or <b>Add to Home screen</b> to run OMEGA full-screen with no address bar.');
-    }
-  });
 
   function isFs() {
     return document.fullscreenElement || document.webkitFullscreenElement ||
@@ -252,22 +215,16 @@ html.pwa .hud-strip{ top: env(safe-area-inset-top); }
     if (req) {
       var p = req.call(el);
       if (p && p.catch) p.catch(function () {
-        showTip('Your browser blocked fullscreen. On a phone, use <b>Install app</b> instead — that removes the browser bar completely.');
+        showTip('Your browser blocked fullscreen. Tap again, or use your browser fullscreen option.');
       });
     } else {
-      showTip('This browser does not support fullscreen. Use <b>Install app</b> to remove the browser bar.');
+      showTip('This browser does not support fullscreen. Try Chrome or Edge on desktop.');
     }
   });
 
   document.addEventListener('fullscreenchange', function () {
     fsBtn.querySelector('span:last-child').textContent = isFs() ? 'Exit full' : 'Fullscreen';
   });
-
-  if (standalone) {
-    installBtn.hidden = true;
-  } else if (isIOS()) {
-    installBtn.hidden = false;
-  }
 
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     window.addEventListener('load', function () {
