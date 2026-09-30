@@ -148,6 +148,8 @@ html.pwa .hud-strip{ top: env(safe-area-inset-top); }
   -webkit-tap-highlight-color:transparent;
 }
 #pwaBar button:active{ transform:translateY(1px); }
+transition:opacity .3s ease, transform .3s ease; }
+#pwaBar button.idle{ opacity:0; transform:translateY(12px) scale(.94); pointer-events:none; }
 #pwaBar button[hidden]{ display:none !important; }
 #pwaBar .k{ color:#4cc9f0; font-size:13px; }
 #pwaTip{
@@ -225,6 +227,32 @@ html.pwa .hud-strip{ top: env(safe-area-inset-top); }
   document.addEventListener('fullscreenchange', function () {
     fsBtn.querySelector('span:last-child').textContent = isFs() ? 'Exit full' : 'Fullscreen';
   });
+
+  var FS_IDLE_MS = 3000;
+  var fsIdleTimer = null;
+  function fsArm() {
+    if (fsIdleTimer) { clearTimeout(fsIdleTimer); fsIdleTimer = null; }
+    fsIdleTimer = setTimeout(function () { fsBtn.classList.add('idle'); }, FS_IDLE_MS);
+  }
+  function fsShow() { fsBtn.classList.remove('idle'); fsArm(); }
+  function fsActivity() {
+    if (fsBtn.classList.contains('idle')) fsShow();
+    else fsArm();
+  }
+
+  window.addEventListener('touchstart', fsActivity, { passive: true });
+  window.addEventListener('pointerdown', fsActivity, { passive: true });
+  window.addEventListener('keydown', fsActivity);
+  window.addEventListener('scroll', fsActivity, { passive: true });
+  var fsLastMove = 0;
+  window.addEventListener('mousemove', function () {
+    var now = Date.now();
+    if (now - fsLastMove < 500) return;
+    fsLastMove = now;
+    fsActivity();
+  }, { passive: true });
+
+  fsShow();
 
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     window.addEventListener('load', function () {
